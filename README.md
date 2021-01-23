@@ -1,7 +1,7 @@
 # ODE4RNN
 ODE-Solver for Recurrent Neural Networks in MATLAB
 
-This ODE-Solver can be used for simulating recurrent neural networks (RNNs) modeling the dynamics function f(x,u,t) = dxdt of arbitrary dynamical systems.
+This ODE-Solver can be used for simulating recurrent neural networks (RNNs) modeling the dynamics function ```f(x,u,t) = dxdt``` of arbitrary dynamical systems.
 The neural network takes sequences of driver data D as input data and gives back a sequence of output data DXDT.
 The driver sequences D consist of a state sequence X and a control input sequence U.
 
