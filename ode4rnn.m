@@ -1,9 +1,13 @@
-function [T, D] = ode4rnn(predictFcn, controlFcn, tSpan, stepSize4Rnn, x_0, maxSequenceLength)
+function [T, D] = ode4rnn(predictFcn, controlFcn, tSpan, stepSize4Rnn, x_0, maxSequenceLength, UsePlotting)
+if nargin < 7
+    UsePlotting = false;
+end
+
 % Time steps for the RNN
 T4ODE = tSpan(1):stepSize4Rnn:tSpan(2);
 
 % Init closure object
-[odeFcn, outputFcn] = closure(predictFcn, controlFcn, maxSequenceLength, tSpan, stepSize4Rnn);
+[odeFcn, outputFcn] = closure(predictFcn, controlFcn, maxSequenceLength, tSpan, stepSize4Rnn, UsePlotting);
 
 % Pass custom output function through odeset
 opts = odeset('OutputFcn', outputFcn);
@@ -18,9 +22,7 @@ end
 
 % Function closure for broadcasting driver and time histories to several
 % functions in use
-function [odeFcn, outputFcn] = closure(predictFcn, controlFcn, maxSequenceLength, tSpan, stepSize4Rnn)
-TRACE("ODE4RNN::CLOSURE(")
-
+function [odeFcn, outputFcn] = closure(predictFcn, controlFcn, maxSequenceLength, tSpan, stepSize4Rnn, UsePlotting)
 % Init driver and time history
 driverHist = dlarray([], 'CT');
 timeHist = [];
@@ -99,14 +101,19 @@ outputFcn = @outputFcn_;
             T_temp = [timeHist, t_k];
             D_temp = [double(gather(extractdata(driverHist))), d_k];
             temp = interp1(T_temp', D_temp', timeGrid', 'pchip', 'extrap')';
-            plot(T_temp', D_temp', 'k-o', 'MarkerSize', 5, 'MarkerFaceColor', 'k', 'LineWidth', 1.5)
-            hold on
-            xlim(tSpan)
-            ylim([-5, 8])
-            grid on
-            plot(timeGrid', temp', 'c--o', 'MarkerSize', 10, 'LineWidth', 1.5)
-            hold off
-            drawnow limitrate
+            
+            % Plot data
+            if UsePlotting
+                plot(T_temp', D_temp', 'k-o', 'MarkerSize', 5, 'MarkerFaceColor', 'k', 'LineWidth', 1.5)
+                hold on
+                xlim(tSpan)
+                ylim([-5, 8])
+                grid on
+                plot(timeGrid', temp', 'c--o', 'MarkerSize', 10, 'LineWidth', 1.5)
+                hold off
+                drawnow limitrate
+            end
+            
             interpHistory = dlarray( ...
                 temp, ...
                 'CT');          
@@ -131,6 +138,4 @@ outputFcn = @outputFcn_;
             historyT = historyT(end-maxSequenceLength+1:end);
         end
     end
-
-TRACE("ODE4RNN::CLOSURE)")
 end
